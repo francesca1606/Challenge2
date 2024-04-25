@@ -73,6 +73,9 @@ public:
     template<class U, StorageOrder s>
     friend std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v);
 
+    template<class U, StorageOrder s>
+    friend Matrix<U,s> readMatrixMarket(const std::string& filename);
+
 
 
 private:
@@ -95,11 +98,15 @@ private:
 template<class U, StorageOrder s>
 std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v);
 
+template<class U, StorageOrder s>
+Matrix<U,s> readMatrixMarket(const std::string& filename);
+
 
 };
 
 
 #include "SparseMatrixImpl.hpp"
+#include "readMatrixMarket.hpp"
 
 
 

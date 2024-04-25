@@ -10,12 +10,9 @@ void Matrix<T, storage>::compress(){
         // Sort the uncompressed data by row (for CSR) or column (for CSC)
         bool key_index;
 
-        //std::vector<std::pair<std::array<std::size_t, 2>, T>> sortedData(m_data_uncompressed.begin(), m_data_uncompressed.end());
         if constexpr (IsRowWise<storage>::value){ 
-            //std::sort(sortedData.begin(), sortedData.end(), [](const auto& a, const auto& b) {return a.first[0] < b.first[0] || (a.first[0] == b.first[0] && a.first[1] < b.first[1]);});
             m_inner.resize(m_rows +1);
             key_index=0;
-
         }
         else{ 
             m_inner.resize(m_cols +1);
@@ -26,7 +23,7 @@ void Matrix<T, storage>::compress(){
         m_outer.resize(m_data_uncompressed.size());
         m_values.resize(m_data_uncompressed.size());
 
-        std::size_t which=0;
+        std::size_t which=1;
         std::size_t idx_outer=0;
         int nnz=0;
    
@@ -34,16 +31,14 @@ void Matrix<T, storage>::compress(){
             
             nnz++;   
             if(key[key_index]!=which){
-                for(std::size_t j=which +2; j<= key[key_index]; ++j)     
+                for(std::size_t j=which +1; j<= key[key_index]; ++j)     
                     m_inner[j]=m_inner[which+1];
                 which=key[key_index];
-                m_inner[which+1]+=nnz;
+                m_inner[which]+=nnz;
             }
             else
-                m_inner[which+1]++;
+                m_inner[which]++;
             
-           
-
             m_outer[idx_outer]= key[!key_index];
 
             m_values[idx_outer]= value;
@@ -52,7 +47,7 @@ void Matrix<T, storage>::compress(){
         }
 
         //finish m_inner
-        for(std::size_t i=which+2; i<m_inner.size(); ++i)
+        for(std::size_t i=which+1; i<m_inner.size(); ++i)
             m_inner[i]=nnz;
 
         // Mark the matrix as compressed
@@ -61,8 +56,6 @@ void Matrix<T, storage>::compress(){
         // Clear the uncompressed data
         m_data_uncompressed.clear();
     }  
-    else 
-        std::cout << "Matrix is already compressed" << std::endl;
 };
 
 
@@ -130,7 +123,7 @@ void Matrix<T,storage>::resize(std::size_t r_dir, std::size_t c_dir){
 template <class T, StorageOrder storage>
 const T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
 
-    if (r<m_rows && c<m_cols){
+    if (r>0 && c>0 && r<=m_rows && c<=m_cols){
     if (!m_compressed){
            std::array<std::size_t,2> key={r,c};
            return m_data_uncompressed[key] ;
@@ -139,12 +132,12 @@ const T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
         
         std::size_t index_for_inner, index_for_outer;
         if constexpr (IsRowWise<storage>::value) {
-            index_for_inner=r;
-            index_for_outer=c;
+            index_for_inner=r-1;
+            index_for_outer=c-1;
         } 
         else { // CSC format
-            index_for_inner=c;
-            index_for_outer=r;  
+            index_for_inner=c-1;
+            index_for_outer=r-1;  
         }
 
         // Determine the start and end indices
@@ -165,7 +158,7 @@ const T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
 template <class T, StorageOrder storage>
 T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c){
 
-    if (r<m_rows && c<m_cols){
+    if (r>0 && c>0 && r<=m_rows && c<=m_cols){
     if (!m_compressed){
            std::array<std::size_t,2> key={r,c};
            return m_data_uncompressed[key] ;
@@ -174,12 +167,12 @@ T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c){
         
         std::size_t index_for_inner, index_for_outer;
         if constexpr (IsRowWise<storage>::value) {
-            index_for_inner=r;
-            index_for_outer=c;
+            index_for_inner=r-1;
+            index_for_outer=c-1;
         } 
         else { // CSC format
-            index_for_inner=c;
-            index_for_outer=r;  
+            index_for_inner=c-1;
+            index_for_outer=r-1;  
         }
 
         // Determine the start and end indices
@@ -230,7 +223,7 @@ T & Matrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t c) {
 
 
 template<class U, StorageOrder s>
-std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v){
+std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v){   //è CACHE-FRIENDLY?????
 
     if(m.m_cols==v.size()){
         std::vector<U> res(m.m_rows);
