@@ -26,20 +26,23 @@ void Matrix<T, storage>::compress(){
         m_outer.resize(m_data_uncompressed.size());
         m_values.resize(m_data_uncompressed.size());
 
-        int which=0;
-        int idx_outer=0;
+        std::size_t which=0;
+        std::size_t idx_outer=0;
         int nnz=0;
    
-        for (const auto& [key, value] : m_data_uncompressed) {    
-
+        for (const auto& [key, value] : m_data_uncompressed) { 
+            
+            nnz++;   
             if(key[key_index]!=which){
-                for(int j=which +2; j<= key[key_index]; ++j)     
+                for(std::size_t j=which +2; j<= key[key_index]; ++j)     
                     m_inner[j]=m_inner[which+1];
                 which=key[key_index];
+                m_inner[which+1]+=nnz;
             }
+            else
+                m_inner[which+1]++;
             
-            nnz++;
-            m_inner[which+1]+=nnz;
+           
 
             m_outer[idx_outer]= key[!key_index];
 
@@ -49,7 +52,7 @@ void Matrix<T, storage>::compress(){
         }
 
         //finish m_inner
-        for(int i=which+2; i<m_inner.size(); ++i)
+        for(std::size_t i=which+2; i<m_inner.size(); ++i)
             m_inner[i]=nnz;
 
         // Mark the matrix as compressed
@@ -67,8 +70,8 @@ template <class T, StorageOrder storage>
 void Matrix<T,storage>::uncompress() {
     if (m_compressed) {
                                                          //PROVA A USARE ::ranges?
-        int count_inner =0;
-        int i_value=0;
+        std::size_t count_inner =0;
+        std::size_t i_value=0;
         
         for(std::size_t i=1; i< m_inner.size(); ++i){  //m_inner            
 
@@ -127,7 +130,7 @@ void Matrix<T,storage>::resize(std::size_t r_dir, std::size_t c_dir){
 template <class T, StorageOrder storage>
 const T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
 
-    if(r<m_rows && c<m_cols)
+    if (r<m_rows && c<m_cols){
     if (!m_compressed){
            std::array<std::size_t,2> key={r,c};
            return m_data_uncompressed[key] ;
@@ -154,7 +157,7 @@ const T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
                 return m_values[i];
 
         throw std::out_of_range("Indexes are out of range");
-    }  
+    }}  
     throw std::out_of_range("Indexes are out of range");
 };
 
@@ -162,7 +165,7 @@ const T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
 template <class T, StorageOrder storage>
 T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c){
 
-    if(r<m_rows && c<m_cols)
+    if (r<m_rows && c<m_cols){
     if (!m_compressed){
            std::array<std::size_t,2> key={r,c};
            return m_data_uncompressed[key] ;
@@ -189,8 +192,9 @@ T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c){
                 return m_values[i];
 
         return insertElementCompressed(r,c);
-    }
+    }}
     throw std::out_of_range("Indexes are out of range");
+    
 };
 
 
@@ -225,6 +229,42 @@ T & Matrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t c) {
 };
 
 
+template<class U, StorageOrder s>
+std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v){
+
+    if(m.m_cols==v.size()){
+        std::vector<U> res(m.m_rows);
+        if(m.m_compressed){
+            int count;
+            int j_index=0;
+            int res_idx, v_idx;
+            for(std::size_t i=1; i<m.m_inner.size(); ++i){
+                count=m.m_inner[i]-m.m_inner[i-1];
+                for(int j=j_index; j<j_index + count; ++j){
+                    if constexpr(IsRowWise<s>::value){
+                        res_idx=i-1;
+                        v_idx=m.m_outer[j];
+                    }
+                    else{
+                        res_idx=m.m_outer[j];
+                        v_idx=i-1;
+                    }
+                    res[res_idx] += m.m_values[j]*v[v_idx];
+                }
+                j_index+=count;
+            }
+        }
+        else{
+            for(const auto &[key,value]: m.m_data_uncompressed)
+                res[key[0]]+= value*v[key[1]];
+        }
+        return res;
+    }
+    throw std::runtime_error("Dimensions are incompatible");
+};
+
+
+
 
 template <class T, StorageOrder storage>
 void Matrix<T, storage>::print() const{
@@ -237,7 +277,7 @@ void Matrix<T, storage>::print() const{
     for(auto it=m_data_uncompressed.begin(); it!= m_data_uncompressed.end(); ++it){
         std::cout << "(" << it->first[0] << "," << it->first[1] << "): " << it->second << std::endl;
     }
-    std::cout<< "m_inner: " <<std::endl;
+    std::cout<< "\nm_inner: " <<std::endl;
     for(auto it=m_inner.begin(); it!= m_inner.end(); ++it){
         std::cout << *(it) << " ";
     }
@@ -249,7 +289,7 @@ void Matrix<T, storage>::print() const{
     for(auto it=m_values.begin(); it!= m_values.end(); ++it){
         std::cout << *it << " ";
     }
-    std::cout << "\n";
+    std::cout << "\n------------------------------\n";
 };
 
 

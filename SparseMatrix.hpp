@@ -70,6 +70,8 @@ public:
     void print() const;   // << OPERATOR INSTEAD OF PRINT
 
 //7.friend *operator for multiplication with a vector
+    template<class U, StorageOrder s>
+    friend std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v);
 
 
 
@@ -85,9 +87,13 @@ private:
     std::vector<T> m_values;
 
     T &insertElementCompressed(std::size_t r, std::size_t c);
+    //get_row();
+
 
 };
 
+template<class U, StorageOrder s>
+std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v);
 
 
 };
