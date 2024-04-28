@@ -4,26 +4,25 @@
 #include "SparseMatrix.hpp"
 #include <iostream>
 #include <fstream>
-#include <sstream>
-#include <vector>
+#include <limits>
 
 namespace algebra{
 
-// Method to read a Matrix Market file
+// Method to read a matrix in Matrix Market format
 template<class U,StorageOrder s>
-Matrix<U,s> readMatrixMarket(const std::string& filename) {
+SparseMatrix<U,s> readMatrixMarket(const std::string& filename) {
      std::ifstream file(filename);
 
      if (!file.is_open()) {
          std::cerr << "Failed to open file: " << filename << std::endl;
      }     
 
-     std::string line;
+     file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
      std::size_t rows, cols, nnz;
      file >> rows >> cols >> nnz;  
 
-     Matrix<U,s> matrix(rows, cols); 
+     SparseMatrix<U,s> matrix(rows, cols); 
       
      for (std::size_t i = 0; i < nnz; ++i) {
          std::size_t row, col;

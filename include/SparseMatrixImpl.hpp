@@ -9,7 +9,7 @@
 namespace algebra{
 
 template <class T, StorageOrder storage>
-void Matrix<T, storage>::compress(){
+void SparseMatrix<T, storage>::compress(){
     if (!m_compressed) {
         // Sort the uncompressed data by row (for CSR) or column (for CSC)
         bool key_index;
@@ -65,7 +65,7 @@ void Matrix<T, storage>::compress(){
 
 
 template <class T, StorageOrder storage>
-void Matrix<T,storage>::uncompress() {
+void SparseMatrix<T,storage>::uncompress() {
     if (m_compressed) {
                                                          //PROVA A USARE ::ranges?
         std::size_t count_inner =0;
@@ -103,7 +103,7 @@ void Matrix<T,storage>::uncompress() {
 
 
 template<class T, StorageOrder storage>
-void Matrix<T,storage>::resize(std::size_t r_dir, std::size_t c_dir){
+void SparseMatrix<T,storage>::resize(std::size_t r_dir, std::size_t c_dir){
 
     uncompress();
 
@@ -126,7 +126,7 @@ void Matrix<T,storage>::resize(std::size_t r_dir, std::size_t c_dir){
 };
 
 template <class T, StorageOrder storage>
-const T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
+const T & SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
 
     if (r<m_rows && c<m_cols){
     if (!m_compressed){
@@ -161,7 +161,7 @@ const T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
 
 
 template <class T, StorageOrder storage>
-T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c){
+T & SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c){
 
     if (r<m_rows && c<m_cols){
     if (!m_compressed){
@@ -197,7 +197,7 @@ T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c){
 
 
 template <class T, StorageOrder storage>
-T & Matrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t c) {
+T & SparseMatrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t c) {
 
     std::size_t index_for_inner, index_for_outer;
     if constexpr (IsRowWise<storage>::value) {
@@ -227,9 +227,8 @@ T & Matrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t c) {
 };
 
 
-//è CACHE-FRIENDLY????
 template<class U, StorageOrder s>
-std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v){   
+std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v){   
 
     if(m.m_cols==v.size()){
         std::vector<U> res(m.m_rows);
@@ -255,31 +254,6 @@ std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v){
                 j_index+=count;
                 prec=m.m_inner[i+1];
             }
-            /*if constexpr(IsRowWise<s>::value){
-                for (std::size_t i = 0; i < m.m_rows; ++i) {
-                  U sum = 0;
-                  std::size_t row_begin = m.m_inner[i];
-                  std::size_t row_end = m.m_inner[i + 1];
-                  for (std::size_t k = row_begin; k < row_end; ++k) {
-                            std::size_t col = m.m_outer[k];
-                            sum += m.m_values[k] * v[col];
-                        }
-                  res[i] = sum;
-                }
-            }
-            else{
-                for (std::size_t j = 0; j < m.m_cols; ++j) {
-                    U col_val = v[j];
-                    if (col_val != 0) {
-                        std::size_t col_begin = m.m_inner[j];
-                        std::size_t col_end = m.m_inner[j + 1];
-                        for (std::size_t k = col_begin; k < col_end; ++k) {
-                            std::size_t row = m.m_outer[k];
-                            res[row] += m.m_values[k] * col_val;
-                        }
-                    }
-                }
-            }*/
         }
         else {
             for(const auto &[key,value]: m.m_data_uncompressed)
@@ -292,31 +266,34 @@ std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v){
 
 
 
+template<class U, StorageOrder s>
+std::ostream & operator<<(std::ostream &str, const SparseMatrix<U,s> & m){
 
-template <class T, StorageOrder storage>
-void Matrix<T, storage>::print() const{
-    std::cout<< "Map: " <<std::endl;
-    bool inner_idx;
-    if constexpr(IsRowWise<storage>::value)
-       inner_idx=0;
-    else 
-       inner_idx=1;
-    for(auto it=m_data_uncompressed.begin(); it!= m_data_uncompressed.end(); ++it){
-        std::cout << "(" << it->first[0] << "," << it->first[1] << "): " << it->second << std::endl;
+    if(!m.m_compressed){
+        std::cout<< "Map: " <<std::endl;
+        for(auto it=m.m_data_uncompressed.begin(); it!= m.m_data_uncompressed.end(); ++it){
+            str << "(" << it->first[0] << "," << it->first[1] << "): " << it->second <<"\n";
+            //std::cout << "(" << it->first[0] << "," << it->first[1] << "): " << it->second << std::endl;
+        }
     }
-    std::cout<< "\nm_inner: " <<std::endl;
-    for(auto it=m_inner.begin(); it!= m_inner.end(); ++it){
-        std::cout << *(it) << " ";
-    }
-    std::cout<< "\nm_outer: " <<std::endl;
-    for(auto it=m_outer.begin(); it!= m_outer.end(); ++it){
-        std::cout << *it << " ";
-    }
-    std::cout << "\nm_values: " << std::endl;
-    for(auto it=m_values.begin(); it!= m_values.end(); ++it){
-        std::cout << *it << " ";
+    else{
+        std::cout<< "\nm_inner: " <<std::endl;
+        for(auto it=m.m_inner.begin(); it!= m.m_inner.end(); ++it){
+            str << *it << " ";
+        }
+        std::cout<< "\nm_outer: " <<std::endl;
+        for(auto it=m.m_outer.begin(); it!= m.m_outer.end(); ++it){
+            str << *it << " ";
+        }
+        std::cout << "\nm_values: " << std::endl;
+        for(auto it=m.m_values.begin(); it!= m.m_values.end(); ++it){
+            str << *it << " ";
+        }
+
     }
     std::cout << "\n------------------------------\n";
+
+    return str;
 };
 
 

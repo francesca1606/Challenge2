@@ -41,40 +41,33 @@ struct  lessOperator{
 
 
 template <class T, StorageOrder storage>
-class Matrix{
+class SparseMatrix{
 
 public:
 
-//6.constructor + resize
-    Matrix(std::size_t r, std::size_t c ): /*m_rows(i), m_cols(j),*/ m_compressed(0) { resize(r, c);};
+    SparseMatrix(std::size_t r, std::size_t c ): m_compressed(0) { resize(r, c);};
 
-// resize
-    void resize(std::size_t r_dir, std::size_t c_dir);   //lo rendo privato???
+    void resize(std::size_t r_dir, std::size_t c_dir);   //PRIVATO????  
 
-//2.compress()
     void compress();
 
-//3.uncompress()
     void uncompress();
 
-//4. is_compressed
     bool is_compressed() const{
         return m_compressed;
     };
 
-//5. call operator, const and non-const
     const T &operator()(std::size_t r, std::size_t c) const;
     T &operator()(std::size_t r, std::size_t c); 
     
-//print
-    void print() const;   // << OPERATOR INSTEAD OF PRINT
-
-//7.friend *operator for multiplication with a vector
     template<class U, StorageOrder s>
-    friend std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v);
+    friend std::ostream & operator<<(std::ostream &str, const SparseMatrix<U,s> & m);  
 
     template<class U, StorageOrder s>
-    friend Matrix<U,s> readMatrixMarket(const std::string& filename);
+    friend std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v);
+
+    template<class U, StorageOrder s>
+    friend SparseMatrix<U,s> readMatrixMarket(const std::string& filename);
 
 
 
@@ -90,16 +83,17 @@ private:
     std::vector<T> m_values;
 
     T &insertElementCompressed(std::size_t r, std::size_t c);
-    //get_row();
-
 
 };
 
 template<class U, StorageOrder s>
-std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v);
+std::ostream & operator<<(std::ostream &str, const SparseMatrix<U,s> & m);
 
 template<class U, StorageOrder s>
-Matrix<U,s> readMatrixMarket(const std::string& filename);
+std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v);
+
+template<class U, StorageOrder s>
+SparseMatrix<U,s> readMatrixMarket(const std::string& filename);
 
 
 };
