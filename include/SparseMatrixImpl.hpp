@@ -1,3 +1,7 @@
+#ifndef SPARSEMATRIXIMPL_HPP
+#define SPARSEMATRIXIMPL_HPP
+
+
 #include "SparseMatrix.hpp"
 #include <iostream>
 
@@ -23,7 +27,7 @@ void Matrix<T, storage>::compress(){
         m_outer.resize(m_data_uncompressed.size());
         m_values.resize(m_data_uncompressed.size());
 
-        std::size_t which=1;
+        std::size_t which=0;
         std::size_t idx_outer=0;
         int nnz=0;
    
@@ -31,13 +35,14 @@ void Matrix<T, storage>::compress(){
             
             nnz++;   
             if(key[key_index]!=which){
-                for(std::size_t j=which +1; j<= key[key_index]; ++j)     
-                    m_inner[j]=m_inner[which+1];
+                for(std::size_t j=which +1 ; j< key[key_index]; ++j)     
+                    m_inner[j]=m_inner[which];
                 which=key[key_index];
-                m_inner[which]+=nnz;
+                m_inner[which +1]+=nnz;
             }
-            else
-                m_inner[which]++;
+            else{
+                m_inner[which+1]++;
+            }
             
             m_outer[idx_outer]= key[!key_index];
 
@@ -123,7 +128,7 @@ void Matrix<T,storage>::resize(std::size_t r_dir, std::size_t c_dir){
 template <class T, StorageOrder storage>
 const T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
 
-    if (r>0 && c>0 && r<=m_rows && c<=m_cols){
+    if (r<m_rows && c<m_cols){
     if (!m_compressed){
            std::array<std::size_t,2> key={r,c};
            return m_data_uncompressed[key] ;
@@ -132,12 +137,12 @@ const T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
         
         std::size_t index_for_inner, index_for_outer;
         if constexpr (IsRowWise<storage>::value) {
-            index_for_inner=r-1;
-            index_for_outer=c-1;
+            index_for_inner=r;
+            index_for_outer=c;
         } 
         else { // CSC format
-            index_for_inner=c-1;
-            index_for_outer=r-1;  
+            index_for_inner=c;
+            index_for_outer=r;  
         }
 
         // Determine the start and end indices
@@ -158,7 +163,7 @@ const T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
 template <class T, StorageOrder storage>
 T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c){
 
-    if (r>0 && c>0 && r<=m_rows && c<=m_cols){
+    if (r<m_rows && c<m_cols){
     if (!m_compressed){
            std::array<std::size_t,2> key={r,c};
            return m_data_uncompressed[key] ;
@@ -167,12 +172,12 @@ T & Matrix<T,storage>::operator()(std::size_t r, std::size_t c){
         
         std::size_t index_for_inner, index_for_outer;
         if constexpr (IsRowWise<storage>::value) {
-            index_for_inner=r-1;
-            index_for_outer=c-1;
+            index_for_inner=r;
+            index_for_outer=c;
         } 
         else { // CSC format
-            index_for_inner=c-1;
-            index_for_outer=r-1;  
+            index_for_inner=c;
+            index_for_outer=r;  
         }
 
         // Determine the start and end indices
@@ -222,32 +227,61 @@ T & Matrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t c) {
 };
 
 
+//è CACHE-FRIENDLY????
 template<class U, StorageOrder s>
-std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v){   //è CACHE-FRIENDLY?????
+std::vector<U> operator*(Matrix<U,s> &m, std::vector<U> &v){   
 
     if(m.m_cols==v.size()){
         std::vector<U> res(m.m_rows);
         if(m.m_compressed){
-            int count;
+            int count=0;
             int j_index=0;
             int res_idx, v_idx;
-            for(std::size_t i=1; i<m.m_inner.size(); ++i){
-                count=m.m_inner[i]-m.m_inner[i-1];
+            std::size_t prec= 0 ;
+            std::size_t inner_size_minus_1= m.m_inner.size() -1;
+            for(std::size_t i=0; i< inner_size_minus_1 ; ++i){
+                count=m.m_inner[i+1]- prec;
                 for(int j=j_index; j<j_index + count; ++j){
                     if constexpr(IsRowWise<s>::value){
-                        res_idx=i-1;
+                        res_idx=i;
                         v_idx=m.m_outer[j];
                     }
                     else{
                         res_idx=m.m_outer[j];
-                        v_idx=i-1;
+                        v_idx=i;
                     }
                     res[res_idx] += m.m_values[j]*v[v_idx];
                 }
                 j_index+=count;
+                prec=m.m_inner[i+1];
             }
+            /*if constexpr(IsRowWise<s>::value){
+                for (std::size_t i = 0; i < m.m_rows; ++i) {
+                  U sum = 0;
+                  std::size_t row_begin = m.m_inner[i];
+                  std::size_t row_end = m.m_inner[i + 1];
+                  for (std::size_t k = row_begin; k < row_end; ++k) {
+                            std::size_t col = m.m_outer[k];
+                            sum += m.m_values[k] * v[col];
+                        }
+                  res[i] = sum;
+                }
+            }
+            else{
+                for (std::size_t j = 0; j < m.m_cols; ++j) {
+                    U col_val = v[j];
+                    if (col_val != 0) {
+                        std::size_t col_begin = m.m_inner[j];
+                        std::size_t col_end = m.m_inner[j + 1];
+                        for (std::size_t k = col_begin; k < col_end; ++k) {
+                            std::size_t row = m.m_outer[k];
+                            res[row] += m.m_values[k] * col_val;
+                        }
+                    }
+                }
+            }*/
         }
-        else{
+        else {
             for(const auto &[key,value]: m.m_data_uncompressed)
                 res[key[0]]+= value*v[key[1]];
         }
@@ -288,3 +322,6 @@ void Matrix<T, storage>::print() const{
 
 
 };
+
+
+#endif /*SPARSEMATRIXIMPL_HPP*/

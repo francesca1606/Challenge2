@@ -1,3 +1,6 @@
+#ifndef READMATRIXMARKET_HPP
+#define READMATRIXMARKET_HPP
+
 #include "SparseMatrix.hpp"
 #include <iostream>
 #include <fstream>
@@ -17,20 +20,16 @@ Matrix<U,s> readMatrixMarket(const std::string& filename) {
 
      std::string line;
 
-     // Assuming the matrix is in CSR or CSC format based on the storage template parameter
-     // Read the matrix dimensions
      std::size_t rows, cols, nnz;
      file >> rows >> cols >> nnz;  
 
-     // Assuming the matrix is stored in CSR format for simplicity
-     // Adjust the implementation for CSC format if necessary
      Matrix<U,s> matrix(rows, cols); 
-     std::cout<<matrix.m_rows << matrix.m_cols <<std::endl;  
+      
      for (std::size_t i = 0; i < nnz; ++i) {
          std::size_t row, col;
          float value;
          file >> row >> col >> value;
-         matrix(row,col)= value;
+         matrix(row-1,col-1)= value;
      }
 
      return matrix;
@@ -38,5 +37,9 @@ Matrix<U,s> readMatrixMarket(const std::string& filename) {
 
 
 }
+
+
+
+#endif /*READMATRIXMARKET_HPP*/
 
 
