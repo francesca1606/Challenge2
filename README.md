@@ -31,7 +31,7 @@ The include folder contains:
 <br/><br/><br/>
 The main.cpp file includes chrono.hpp, that is needed to time the execution of the matrix-product vector.
 To make the program include it, in the CPPFLAGS  of the Makefile I employed the environmental variable PACS_ROOT, which stands for the directory to pacs-examples/Examples
-<br/>
+<br/><br/>
 To run the code, simply run make in the terminal
 If you want to remove the object file and the executable, run make clean
 
