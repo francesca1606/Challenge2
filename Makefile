@@ -1,6 +1,6 @@
 CXX      ?= g++
 CXXFLAGS ?= -std=c++20
-CPPFLAGS ?= -O3 -Wall -I. -I./include -Wno-conversion-null -Wno-deprecated-declarations -I../pacs-examples/Examples/include   
+CPPFLAGS ?= -O3 -Wall -I. -I./include -Wno-conversion-null -Wno-deprecated-declarations -I$(PACS_ROOT)/include   
             
 EXEC     = main
 

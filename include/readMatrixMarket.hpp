@@ -19,14 +19,16 @@ SparseMatrix<U,s> readMatrixMarket(const std::string& filename) {
 
      file.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
+     //number of rows, columns and non-zero elements
      std::size_t rows, cols, nnz;
      file >> rows >> cols >> nnz;  
 
      SparseMatrix<U,s> matrix(rows, cols); 
       
+     //fill matrix
      for (std::size_t i = 0; i < nnz; ++i) {
          std::size_t row, col;
-         float value;
+         U value;
          file >> row >> col >> value;
          matrix(row-1,col-1)= value;
      }

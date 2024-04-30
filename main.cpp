@@ -1,37 +1,26 @@
 #include "SparseMatrix.hpp"
 #include "chrono.hpp"
 #include <algorithm>
+#include <complex>
 
 using namespace algebra;
 
 
 int main(){
 
-    /*Matrix<int, StorageOrder::column_wise> S(2,4);
-    S(1,1)=1;
-    S(1,3)=5;
-    S(1,4)=10;
-    S(2,2)=1;
-    S(2,3)=1;
-    S(2,4)=4;
-    S.print();
-    S.compress();*/
-
     Timings::Chrono Time;
 
-    SparseMatrix<float,StorageOrder::row_wise> M_rows= readMatrixMarket<float,StorageOrder::row_wise>("Insp_131.mtx");
-    SparseMatrix<float,StorageOrder::column_wise> M_cols= readMatrixMarket<float,StorageOrder::column_wise>("Insp_131.mtx");
-    std::vector<float> v(131,1);
-
-    std::cout << M_cols;
+    SparseMatrix<double,StorageOrder::row_wise> M_rows= readMatrixMarket<double,StorageOrder::row_wise>("Insp_131.mtx");
+    SparseMatrix<double,StorageOrder::column_wise> M_cols= readMatrixMarket<double,StorageOrder::column_wise>("Insp_131.mtx");
+    std::vector<double> v(131,1);
 
     Time.start();
-    std::vector<float> prod1=M_rows*v;
+    std::vector<double> prod1=M_rows*v;
     Time.stop();
     std::cout <<"\nProduct of uncompressed matrix (row_wise) with vector:        " << Time << std::endl;
 
     Time.start();
-    std::vector<float> prod2=M_cols*v;
+    std::vector<double> prod2=M_cols*v;
     Time.stop();
     std::cout << "Product of uncompressed matrix (column_wise) with vector:     " << Time << std::endl;
 
@@ -39,23 +28,39 @@ int main(){
     M_cols.compress();
 
     Time.start();
-    std::vector<float> prod3=M_rows*v;
+    std::vector<double> prod3=M_rows*v;
     Time.stop();
     std::cout << "Product of compressed matrix (row_wise) with vector:          " << Time << std::endl;
 
     Time.start();
-    std::vector<float> prod4=M_cols*v;
+    std::vector<double> prod4=M_cols*v;
     Time.stop();
     std::cout << "Product of compressed matrix (column_wise) with vector:       " << Time << std::endl;
+
     
     std::cout << (prod1==prod2) << std::endl; 
     std::cout << (prod1==prod3) << std::endl;       
     std::cout << (prod1==prod4) << std::endl;
-
-    //for (auto &s: prod1)
-    //    std::cout << s << " ";
     std::cout << "\n\n";
-    
+
+    for(auto &s:prod1){
+        std::cout << s << " ";
+    }
+    std::cout << "\n\n";
+
+    /*SparseMatrix<std::complex<double>, StorageOrder::row_wise> m(3, 3);
+    m.compress();
+    m(1,2)= {3,4};
+    m(1,1)= {1,1};
+    m(2,0)= {5,10};
+    m.uncompress();
+    std::vector<std::complex<double>> v1 = { {1, 2}, {3, 4}, {5, 6} };
+    std::vector<std::complex<double>> result = m * v1;
+
+    for(auto &s:result){
+        std::cout << s << " ";
+    }
+    std::cout << "\n\n";*/
 
     return 0;
 };
