@@ -16,13 +16,13 @@ An uncompressed sparse matrix consists of an ordered map:
 The file is divided into :
 - docs
 - include
-- .gitignore
-- Doxyfile
-- Insp_131.mtx
-- LICENSE
 - main.cpp
+- Insp_131.mtx
 - Makefile
+- Doxyfile
 - README.md
+- LICENSE
+- .gitignore
 
 <br/><br/>
 The include folder contains:
