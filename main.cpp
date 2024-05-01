@@ -49,7 +49,7 @@ int main(){
     std::cout << "\n\n";
 
 
-    SparseMatrix<double, StorageOrder::row_wise> m(5,1);
+    SparseMatrix<double, StorageOrder::row_wise> m(5,1);    //matrix with one column
     m(0,0)=1;
     m(2,0)=1;
     m(3,0)=1;

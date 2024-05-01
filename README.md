@@ -24,11 +24,16 @@ The file is divided into :
 
 <br/><br/>
 The include folder contains:
-- SparseMatrix.hpp, where inside the namespace algebra the SparseMatrix class is declared, along with the enumerator StorageOrder
-- SparseMatrixImpl.hpp, which contains the definitions of SparseMatrix' methods and of the stream operator and the matrix-vector product (class' friends)
+- SparseMatrix.hpp, where inside the namespace algebra the SparseMatrix template class is declared, along with the enumerator StorageOrder and the functor IsRowWise
+- SparseMatrixImpl.hpp, which contains the definitions of SparseMatrix' methods and of the stream operator and the matrix-vector product (class' friends).
+<br/> The overloading of operator* that allows the product between a matrix and a vector is adapetd to work also for a matrix of one column with a vector of compatible dimension; the result will be a vector of dimension one.
 - readMatrixMarket.hpp, which contains the definition of the friend method for reading the matrix from Insp_131.mtx (MatrixMarket format)
 
-<br/><br/><br/>
+<br/><br/>
+
+--------------------------
+
+<br/><br/>
 The main.cpp file includes chrono.hpp, that is needed to time the execution of the matrix-product vector.
 To make the program include it, in the CPPFLAGS  of the Makefile I employed the environmental variable PACS_ROOT, which stands for the directory to pacs-examples/Examples
 <br/><br/>
