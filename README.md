@@ -29,7 +29,7 @@ The include folder contains:
 <br/> The overloading of operator* that allows the product between a matrix and a vector is adapetd to work also for a matrix of one column with a vector of compatible dimension; the result will be a vector of dimension one.
 - readMatrixMarket.hpp, which contains the definition of the friend method for reading the matrix from Insp_131.mtx (MatrixMarket format)
 
-<br/><br/>
+<br/>
 
 --------------------------
 
