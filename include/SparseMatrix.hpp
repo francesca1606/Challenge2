@@ -76,6 +76,12 @@ public:
     template<class U, StorageOrder s>
     friend std::ostream & operator<<(std::ostream &str, const SparseMatrix<U,s> & m);  
 
+    /// @brief Method to resize the sparse matrix 
+    /// @param r_dir New numebr of rows
+    /// @param c_dir New number of columns
+    /// @note used inside the constructor
+    void resize(std::size_t r_dir, std::size_t c_dir);
+
     /// @brief Function that executes the product between a SparseMatrix and a vector, with compatible dimensions
     /// @tparam U Type of elements stored inside SparseMatrix and std::vector 
     /// @tparam s Storage order of SparseMatrix
@@ -103,13 +109,7 @@ private:
     
     std::vector<std::size_t> m_inner;
     std::vector<std::size_t> m_outer;
-    std::vector<T> m_values;
-
-    /// @brief Private method to resize the sparse matrix 
-    /// @param r_dir New numebr of rows
-    /// @param c_dir New number of columns
-    /// @note used inside the constructor
-    void resize(std::size_t r_dir, std::size_t c_dir);   
+    std::vector<T> m_values;   
 
     /// @brief Private method to add a new element inside a compressed SparseMatrix
     /// @param r row of the new element

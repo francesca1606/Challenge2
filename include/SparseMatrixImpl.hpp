@@ -236,8 +236,15 @@ T & SparseMatrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t
 template<class U, StorageOrder s>
 std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v){   
 
-    if(m.m_cols==v.size()){
+    if(m.m_cols==v.size()  || (m.m_cols==1 && m.m_rows==v.size())){
+        
         std::vector<U> res(m.m_rows);
+        
+        bool one_column= (m.m_cols==1);
+        //the vector is actually a scalar if matrix has one column
+        if(one_column) 
+           res.resize(1);
+
 
         if(m.m_compressed){
 
@@ -245,7 +252,9 @@ std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v){
             std::size_t start, end;
             std::size_t inner_size_minus_1= m.m_inner.size() -1;
 
-            for(std::size_t i=0; i< inner_size_minus_1 ; ++i){
+
+            if(!one_column){  //matrix-vector
+              for(std::size_t i=0; i< inner_size_minus_1 ; ++i){
                 //determine start and end point
                 start = m.m_inner[i];
                 end= m.m_inner[i+1];
@@ -255,18 +264,43 @@ std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v){
                         res_idx=i;
                         v_idx=m.m_outer[j];
                     }
-                    else{ //CSC
+                    else if constexpr(!IsRowWise<s>::value) { //CSC
                         res_idx=m.m_outer[j];
                         v_idx=i;
-                    } //update res
+                    } 
+                    //update res
                     res[res_idx] += m.m_values[j]*v[v_idx];  
                 }
+              }
+            }
+            else{ //"vector"-vector
+              for(std::size_t i=0; i< inner_size_minus_1 ; ++i){
+                //determine start and end point
+                start = m.m_inner[i];
+                end= m.m_inner[i+1];
+
+                for(std::size_t j=start; j<end; ++j){
+                    if constexpr(IsRowWise<s>::value)
+                        v_idx=i;
+                    else
+                        v_idx=m.m_outer[j];
+                    //update res, res ha size=1
+                    res[0] += m.m_values[j]*v[v_idx];  
+                }
+              }
             }
         }
-        else {  //loop over non-zero elements of the map
-            for(const auto &[key,value]: m.m_data_uncompressed)
+        else {  
+            if(!one_column) //matrix-vector
+              //loop over non-zero elements of the map
+              for(const auto &[key,value]: m.m_data_uncompressed)
                 res[key[0]]+= value*v[key[1]];
+            else //"vector"-vector
+              //loop over non-zero elements of the map
+              for(const auto &[key,value]: m.m_data_uncompressed)
+                res[0]+= value*v[key[0]];
         }
+        
         return res;
     }
     throw std::runtime_error("Dimensions are incompatible");

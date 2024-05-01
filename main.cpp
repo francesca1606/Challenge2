@@ -25,7 +25,7 @@ int main(){
     std::cout << "Product of uncompressed matrix (column_wise) with vector:     " << Time << std::endl;
 
     M_rows.compress();
-    M_cols.compress();
+    M_cols.compress();  
 
     Time.start();
     std::vector<double> prod3=M_rows*v;
@@ -47,6 +47,20 @@ int main(){
         std::cout << s << " ";
     }
     std::cout << "\n\n";
+
+
+    SparseMatrix<double, StorageOrder::row_wise> m(5,1);
+    m(0,0)=1;
+    m(2,0)=1;
+    m(3,0)=1;
+    std::vector<double> v1(5,1);
+    m.compress();
+    std::vector<double> res= m*v1;
+     for(auto &s:res){
+        std::cout << s << " ";
+    }
+    std::cout << "\n\n";
+
 
     /*SparseMatrix<std::complex<double>, StorageOrder::row_wise> m(3, 3);
     m.compress();
