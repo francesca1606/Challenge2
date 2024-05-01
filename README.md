@@ -31,9 +31,9 @@ The include folder contains:
 <br/> The overloading of operator* that allows the product between a matrix and a vector is adapetd to work also for a matrix of one column with a vector of compatible dimension; the result will be a vector of dimension one.
 - readMatrixMarket.hpp, which contains the definition of the friend method for reading the matrix from Insp_131.mtx (MatrixMarket format)
 
-<br/><br/>The docs folder contains the Doxygen documentation.
+The docs folder contains the Doxygen documentation.
 
-<br/><br/>Inside the main function in main.cpp there are the timings of matrix-vector product of compressed-uncompressed and row/column-wise versions.
+<br/>Inside the main function in main.cpp there are the timings of matrix-vector product of compressed-uncompressed and row/column-wise versions.
 
 <br/>
 --------------------------
