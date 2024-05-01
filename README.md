@@ -33,9 +33,10 @@ The include folder contains:
 
 The docs folder contains the Doxygen documentation.
 
-<br/>Inside the main function in main.cpp there are the timings of matrix-vector product of compressed-uncompressed and row/column-wise versions.
+Inside the main function in main.cpp there are the timings of matrix-vector product of compressed-uncompressed and row/column-wise versions.
 
 <br/>
+
 --------------------------
 
 <br/><br/>
