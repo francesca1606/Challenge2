@@ -14,7 +14,6 @@ An uncompressed sparse matrix consists of an ordered map:
 
 
 The file is divided into :
-- docs
 - include
 - main.cpp
 - Insp_131.mtx
@@ -31,7 +30,9 @@ The include folder contains:
 <br/> The overloading of operator* that allows the product between a matrix and a vector is adapetd to work also for a matrix of one column with a vector of compatible dimension; the result will be a vector of dimension one.
 - readMatrixMarket.hpp, which contains the definition of the friend method for reading the matrix from Insp_131.mtx (MatrixMarket format)
 
-The docs folder contains the Doxygen documentation.
+To generate the Doxygen documentation, run
+          doxygen Doxyfile
+The docs folder will be filled with the documents. In particular, the latex directory contains refman.tex, convertible to a pdf which explains the structure of the code
 
 Inside the main function in main.cpp there are the timings of matrix-vector product of compressed-uncompressed and row/column-wise versions.
 

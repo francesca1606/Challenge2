@@ -1,6 +1,11 @@
 #ifndef READMATRIXMARKET_HPP
 #define READMATRIXMARKET_HPP
 
+/**
+ * \file readMatrixMarket.hpp
+ * \brief Header file for the readMatrixMarket function
+ */
+
 #include "SparseMatrix.hpp"
 #include <iostream>
 #include <fstream>
@@ -8,7 +13,13 @@
 
 namespace algebra{
 
-// Method to read a matrix in Matrix Market format
+/**
+ * \brief Method to read a matrix in Matrix Market format
+ * \tparam U Type of the stored element
+ * \tparam s Storage order
+ * \param filename The name of the file to read
+ * \return The matrix read from the file
+ */
 template<class U,StorageOrder s>
 SparseMatrix<U,s> readMatrixMarket(const std::string& filename) {
      std::ifstream file(filename);

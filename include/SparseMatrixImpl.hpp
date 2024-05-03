@@ -1,6 +1,11 @@
 #ifndef SPARSEMATRIXIMPL_HPP
 #define SPARSEMATRIXIMPL_HPP
 
+/**
+ * \file SparseMatrixImpl.hpp
+ * \brief Implementation file for the SparseMatrix class
+ */
+
 
 #include "SparseMatrix.hpp"
 #include <iostream>
@@ -8,6 +13,16 @@
 
 namespace algebra{
 
+/**
+ * @brief Compresses the sparse matrix.
+ * 
+ * This function compresses the sparse matrix using either the CSR (Compressed Sparse Row) or CSC (Compressed Sparse Column) format.
+ * It initializes the compressed data structures and populates them with the non-zero elements of the uncompressed data.
+ * After compression, the matrix is marked as compressed and the uncompressed data is cleared.
+ * 
+ * @tparam T The type of the matrix elements.
+ * @tparam storage The storage order of the matrix (row-wise or column-wise).
+ */
 template <class T, StorageOrder storage>
 void SparseMatrix<T, storage>::compress(){
     if (!m_compressed) {
@@ -26,12 +41,11 @@ void SparseMatrix<T, storage>::compress(){
         m_outer.resize(m_data_uncompressed.size());
         m_values.resize(m_data_uncompressed.size());
 
-        /// @brief index that follows progression in m_inner
-        /// @note based on key[key_index]
+        // index that follows progression in m_inner, based on key[key_index]
         std::size_t idx_inner=0;
-        /// @brief index that follows progression in m_outer
+        //ndex that follows progression in m_outer
         std::size_t idx_outer=0;
-        /// @brief number of non-zero elements
+        //number of non-zero elements
         int nnz=0;
    
         // following lessOperator ordering
@@ -72,7 +86,16 @@ void SparseMatrix<T, storage>::compress(){
     }  
 };
 
-
+/**
+ * @brief Uncompresses the sparse matrix.
+ * 
+ * This function uncompresses the sparse matrix by converting it from the CSR or CSC format to the uncompressed format.
+ * It initializes the uncompressed data structures and populates them with the non-zero elements of the compressed data.
+ * After uncompression, the matrix is marked as uncompressed and the compressed data is cleared.
+ * 
+ * @tparam T The type of the matrix elements.
+ * @tparam storage The storage order of the matrix (row-wise or column-wise).
+ */
 template <class T, StorageOrder storage>
 void SparseMatrix<T,storage>::uncompress() {
     if (m_compressed) {
@@ -109,7 +132,17 @@ void SparseMatrix<T,storage>::uncompress() {
     }
 };
 
-
+/**
+ * @brief Resizes the sparse matrix.
+ * 
+ * This function resizes the sparse matrix to the specified dimensions.
+ * If the matrix is compressed, it first uncompresses the matrix, removes any elements that are out of range, and then compresses the matrix again.
+ * 
+ * @tparam T The type of the matrix elements.
+ * @tparam storage The storage order of the matrix (row-wise or column-wise).
+ * @param r_dir The new number of rows.
+ * @param c_dir The new number of columns.
+ */
 template<class T, StorageOrder storage>
 void SparseMatrix<T,storage>::resize(std::size_t r_dir, std::size_t c_dir){
 
@@ -132,6 +165,20 @@ void SparseMatrix<T,storage>::resize(std::size_t r_dir, std::size_t c_dir){
 
 };
 
+/**
+ * @brief Accesses the element at the specified position in the sparse matrix.
+ * 
+ * This function returns the value of the element at the specified position in the sparse matrix.
+ * If the matrix is compressed, it uses the CSR or CSC format to access the element efficiently.
+ * If the matrix is uncompressed, it uses the uncompressed data structure to access the element.
+ * 
+ * @tparam T The type of the matrix elements.
+ * @tparam storage The storage order of the matrix (row-wise or column-wise).
+ * @param r The row index of the element.
+ * @param c The column index of the element.
+ * @return The value of the element at the specified position.
+ * @throws std::out_of_range If the row or column index is out of range.
+ */
 template <class T, StorageOrder storage>
 T SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
 
@@ -166,7 +213,21 @@ T SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
     throw std::out_of_range("Indexes are out of range");
 };
 
-
+/**
+ * @brief Accesses the element at the specified position in the sparse matrix.
+ * 
+ * This function returns a reference to the element at the specified position in the sparse matrix.
+ * If the matrix is compressed, it uses the CSR or CSC format to access the element efficiently.
+ * If the matrix is uncompressed, it uses the uncompressed data structure to access the element.
+ * If the element does not exist, it inserts a new element at the specified position and returns a reference to it.
+ * 
+ * @tparam T The type of the matrix elements.
+ * @tparam storage The storage order of the matrix (row-wise or column-wise).
+ * @param r The row index of the element.
+ * @param c The column index of the element.
+ * @return A reference to the element at the specified position.
+ * @throws std::out_of_range If the row or column index is out of range.
+ */
 template <class T, StorageOrder storage>
 T & SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c){
 
@@ -202,7 +263,19 @@ T & SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c){
     
 };
 
-
+/**
+ * @brief Inserts a new element at the specified position in the compressed sparse matrix.
+ * 
+ * This function inserts a new element at the specified position in the compressed sparse matrix.
+ * It finds the insertion point in the m_outer array for the specified row/column and adjusts the m_inner array accordingly.
+ * It returns a reference to the newly inserted value.
+ * 
+ * @tparam T The type of the matrix elements.
+ * @tparam storage The storage order of the matrix (row-wise or column-wise).
+ * @param r The row index of the element.
+ * @param c The column index of the element.
+ * @return A reference to the newly inserted value.
+ */
 template <class T, StorageOrder storage>
 T & SparseMatrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t c) {
 
@@ -232,7 +305,19 @@ T & SparseMatrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t
     return m_values[insertPos];
 };
 
-
+/**
+ * @brief Performs matrix-vector multiplication.
+ * 
+ * This function performs matrix-vector multiplication between the sparse matrix and the vector.
+ * It returns the resulting vector.
+ * 
+ * @tparam U The type of the matrix and vector elements.
+ * @tparam s The storage order of the matrix (row-wise or column-wise).
+ * @param m The sparse matrix.
+ * @param v The vector.
+ * @return The resulting vector of the matrix-vector multiplication.
+ * @throws std::runtime_error If the dimensions of the matrix and vector are incompatible.
+ */
 template<class U, StorageOrder s>
 std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v){   
 
@@ -307,7 +392,18 @@ std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v){
 };
 
 
-
+/**
+ * \brief Overload of the operator<< for the SparseMatrix class
+ * 
+ * This function overloads the operator<< for the SparseMatrix class.
+ * 
+ * \tparam U Type of the stored element
+ * \tparam s Storage order of the SparseMatrix
+ * \param str The output stream
+ * \param m The SparseMatrix object
+ * \return Reference to the output stream
+ * 
+ */
 template<class U, StorageOrder s>
 std::ostream & operator<<(std::ostream &str, const SparseMatrix<U,s> & m){
 
