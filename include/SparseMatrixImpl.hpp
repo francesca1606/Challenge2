@@ -319,7 +319,7 @@ T & SparseMatrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t
  * @throws std::runtime_error If the dimensions of the matrix and vector are incompatible.
  */
 template<class U, StorageOrder s>
-std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v){   
+std::vector<U> operator*(const SparseMatrix<U,s> &m, const std::vector<U> &v){   
 
     if(m.m_cols==v.size()  || (m.m_cols==1 && m.m_rows==v.size())){
         
@@ -330,26 +330,24 @@ std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v){
         if(one_column) 
            res.resize(1);
 
-
-        if(m.m_compressed){
+        if(m.is_compressed()){
 
             int res_idx, v_idx;
             std::size_t start, end;
             std::size_t inner_size_minus_1= m.m_inner.size() -1;
 
-
             if(!one_column){  //matrix-vector
+
               for(std::size_t i=0; i< inner_size_minus_1 ; ++i){
                 //determine start and end point
                 start = m.m_inner[i];
                 end= m.m_inner[i+1];
-
                 for(std::size_t j=start; j<end; ++j){
                     if constexpr(IsRowWise<s>::value){  //CSR
                         res_idx=i;
                         v_idx=m.m_outer[j];
                     }
-                    else if constexpr(!IsRowWise<s>::value) { //CSC
+                    else{ //CSC
                         res_idx=m.m_outer[j];
                         v_idx=i;
                     } 
@@ -388,7 +386,8 @@ std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v){
         
         return res;
     }
-    throw std::runtime_error("Dimensions are incompatible");
+    std::cerr << "Dimensions are incompatible\n";
+    return std::vector<U>();
 };
 
 

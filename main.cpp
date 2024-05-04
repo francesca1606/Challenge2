@@ -15,14 +15,18 @@ int main(){
     SparseMatrix<double,StorageOrder::row_wise> M_rows= readMatrixMarket<double,StorageOrder::row_wise>("Insp_131.mtx");
     SparseMatrix<double,StorageOrder::column_wise> M_cols= readMatrixMarket<double,StorageOrder::column_wise>("Insp_131.mtx"); 
     std::vector<double> v(131,1);
+    std::random_device rd;  
+    std::mt19937 gen(rd()); 
+    std::vector<double> randomVector(131);
+    std::ranges::generate(randomVector, [&]() { return std::uniform_real_distribution<double>(0., 100.)(gen); });
 
     Time.start();
-    std::vector<double> prod1=M_rows*v;
+    std::vector<double> prod1=M_rows*randomVector;
     Time.stop();
     std::cout <<"\nProduct of uncompressed matrix (row_wise) with vector:        " << Time << std::endl;
 
     Time.start();
-    std::vector<double> prod2=M_cols*v;
+    std::vector<double> prod2=M_cols*randomVector;
     Time.stop();
     std::cout << "Product of uncompressed matrix (column_wise) with vector:     " << Time << std::endl;
 
@@ -30,12 +34,12 @@ int main(){
     M_cols.compress();  
 
     Time.start();
-    std::vector<double> prod3=M_rows*v;
+    std::vector<double> prod3=M_rows*randomVector;
     Time.stop();
     std::cout << "Product of compressed matrix (row_wise) with vector:          " << Time << std::endl;
 
     Time.start();
-    std::vector<double> prod4=M_cols*v;
+    std::vector<double> prod4=M_cols*randomVector;
     Time.stop();
     std::cout << "Product of compressed matrix (column_wise) with vector:       " << Time << std::endl;
 

@@ -87,7 +87,7 @@ public:
      * \brief Check if the SparseMatrix is compressed
      * \return true if the SparseMatrix is compressed, false otherwise
      */
-    bool is_compressed() const;
+    bool is_compressed() const {return m_compressed;};
 
     /**
      * \brief Constant version of call operator 
@@ -133,7 +133,7 @@ public:
      * \return The product vector of elements of type U
      */
     template<class U, StorageOrder s>
-    friend std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v);
+    friend std::vector<U> operator*(const SparseMatrix<U,s> &m, const std::vector<U> &v);
 
     /**
      * \brief Function to read a matrix in a MatrixMarket format
@@ -190,7 +190,7 @@ std::ostream & operator<<(std::ostream &str, const SparseMatrix<U,s> & m);
  * \return The product vector of elements of type U
  */
 template<class U, StorageOrder s>
-std::vector<U> operator*(SparseMatrix<U,s> &m, std::vector<U> &v);
+std::vector<U> operator*(const SparseMatrix<U,s> &m, const std::vector<U> &v);
 
 /**
  * \brief Function to read a matrix in a MatrixMarket format
