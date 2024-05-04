@@ -33,8 +33,12 @@ The include folder contains:
 To generate the Doxygen documentation, run
           doxygen Doxyfile
 The docs folder will be filled with the documents. In particular, the latex directory contains refman.tex, convertible to a pdf which explains the structure of the code
+          pdflatex refman.tex
+inside of docs/latex directory
 
-Inside the main function in main.cpp there are the timings of matrix-vector product of compressed-uncompressed and row/column-wise versions.
+Inside the main function in main.cpp there are the timings of matrix-vector product (unitary vector) of compressed-uncompressed and row/column-wise versions.
+
+Also, I commented an example of usage of operator* with a matrix with one column and one with complex type elements.
 
 <br/>
 

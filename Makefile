@@ -4,7 +4,6 @@ CPPFLAGS ?= -O3 -Wall -I. -I./include -Wno-conversion-null -Wno-deprecated-decla
             
 EXEC     = main
 
-
 SRCS =  main.cpp                                              
 OBJS =  $(SRCS:.cpp=.o)
 HEADERS = $(wildcard include/*.hpp)  

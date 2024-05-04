@@ -2,6 +2,8 @@
 #include "chrono.hpp"
 #include <algorithm>
 #include <complex>
+#include <random>
+#include <ranges>
 
 using namespace algebra;
 
@@ -11,7 +13,7 @@ int main(){
     Timings::Chrono Time;
 
     SparseMatrix<double,StorageOrder::row_wise> M_rows= readMatrixMarket<double,StorageOrder::row_wise>("Insp_131.mtx");
-    SparseMatrix<double,StorageOrder::column_wise> M_cols= readMatrixMarket<double,StorageOrder::column_wise>("Insp_131.mtx");
+    SparseMatrix<double,StorageOrder::column_wise> M_cols= readMatrixMarket<double,StorageOrder::column_wise>("Insp_131.mtx"); 
     std::vector<double> v(131,1);
 
     Time.start();
@@ -37,21 +39,14 @@ int main(){
     Time.stop();
     std::cout << "Product of compressed matrix (column_wise) with vector:       " << Time << std::endl;
 
-    
-    std::cout << (prod1==prod2) << std::endl; 
-    std::cout << (prod1==prod3) << std::endl;       
-    std::cout << (prod1==prod4) << std::endl;
-    std::cout << "\n\n";
-
-    for(auto &s:prod1){
-        std::cout << s << " ";
-    }
-    std::cout << "\n\n";
+    if(prod1==prod2 && prod1==prod3 && prod1==prod4)
+        std::cout << "All products are equal\n\n";
 
 
-    SparseMatrix<double, StorageOrder::row_wise> m(5,1);    //matrix with one column
+    //matrix with one column
+    /*SparseMatrix<double, StorageOrder::row_wise> m(5,1);    
     m(0,0)=1;
-    m(2,0)=1;
+    m(2,0)=3;
     m(3,0)=1;
     std::vector<double> v1(5,1);
     m.compress();
@@ -61,8 +56,8 @@ int main(){
     }
     std::cout << "\n\n";
 
-
-    /*SparseMatrix<std::complex<double>, StorageOrder::row_wise> m(3, 3);
+    //complex numbers
+    SparseMatrix<std::complex<double>, StorageOrder::row_wise> m(3, 3);
     m.compress();
     m(1,2)= {3,4};
     m(1,1)= {1,1};
