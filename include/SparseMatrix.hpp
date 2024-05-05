@@ -135,6 +135,7 @@ public:
     template<class U, StorageOrder s>
     friend std::vector<U> operator*(const SparseMatrix<U,s> &m, const std::vector<U> &v);
 
+
     /**
      * \brief Function to read a matrix in a MatrixMarket format
      * \tparam U Type of stored elements

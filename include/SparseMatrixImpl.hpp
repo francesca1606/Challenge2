@@ -29,7 +29,7 @@ void SparseMatrix<T, storage>::compress(){
         
         bool key_index;
         //initialize the compressed data
-        if constexpr (IsRowWise<storage>::value){ //CSR
+        if (IsRowWise<storage>::value){ //CSR
             m_inner.resize(m_rows +1);
             key_index=0;
         }
@@ -57,8 +57,8 @@ void SparseMatrix<T, storage>::compress(){
             if(key[key_index]!=idx_inner){
                 //in between precedent row/column (idx_inner) and key[key_index], set all 
                 //in between elements of m_inner to number of non-zero elements reached
-                for(std::size_t j=idx_inner +1 ; j< key[key_index]; ++j)     
-                    m_inner[j]=m_inner[idx_inner];
+                for(std::size_t j=idx_inner +1 ; j<= key[key_index]; ++j)     
+                    m_inner[j]=m_inner[idx_inner+1];
                 //update idx_inner and m_inner[idx_inner+1]
                 idx_inner=key[key_index];
                 m_inner[idx_inner +1]+=nnz;
@@ -177,7 +177,6 @@ void SparseMatrix<T,storage>::resize(std::size_t r_dir, std::size_t c_dir){
  * @param r The row index of the element.
  * @param c The column index of the element.
  * @return The value of the element at the specified position.
- * @throws std::out_of_range If the row or column index is out of range.
  */
 template <class T, StorageOrder storage>
 T SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
@@ -185,7 +184,11 @@ T SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
     if (r<m_rows && c<m_cols){
     if (!m_compressed){
            std::array<std::size_t,2> key={r,c};
-           return m_data_uncompressed[key];
+           auto it= m_data_uncompressed.find(key);
+           if(it!= m_data_uncompressed.end())
+              return it->second;
+           else
+              return T();
         }
     else {
         
@@ -210,7 +213,8 @@ T SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
         
         return T();  //default value of T
     }}  
-    throw std::out_of_range("Indexes are out of range");
+    std::cerr << "Indexes are out of range\n";
+    return T();
 };
 
 /**
@@ -226,7 +230,6 @@ T SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
  * @param r The row index of the element.
  * @param c The column index of the element.
  * @return A reference to the element at the specified position.
- * @throws std::out_of_range If the row or column index is out of range.
  */
 template <class T, StorageOrder storage>
 T & SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c){
@@ -259,7 +262,9 @@ T & SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c){
         //if element is not present yet 
         return insertElementCompressed(r,c);  
     }}
-    throw std::out_of_range("Indexes are out of range");
+    std::cerr<<"Indexes are out of range";
+    static T default_val;
+    return default_val;
     
 };
 
@@ -316,13 +321,15 @@ T & SparseMatrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t
  * @param m The sparse matrix.
  * @param v The vector.
  * @return The resulting vector of the matrix-vector multiplication.
- * @throws std::runtime_error If the dimensions of the matrix and vector are incompatible.
  */
 template<class U, StorageOrder s>
-std::vector<U> operator*(const SparseMatrix<U,s> &m, const std::vector<U> &v){   
-
-    if(m.m_cols==v.size()  || (m.m_cols==1 && m.m_rows==v.size())){
-        
+std::vector<U> operator*(const SparseMatrix<U,s> &m, const std::vector<U> &v){  
+    
+    if(m.m_cols!=v.size()  && !(m.m_cols==1 && m.m_rows==v.size())){
+        std::cerr << "Dimensions are incompatible\n";
+        return std::vector<U>();
+    }
+    else{
         std::vector<U> res(m.m_rows);
         
         bool one_column= (m.m_cols==1);
@@ -331,45 +338,42 @@ std::vector<U> operator*(const SparseMatrix<U,s> &m, const std::vector<U> &v){
            res.resize(1);
 
         if(m.is_compressed()){
-
-            int res_idx, v_idx;
-            std::size_t start, end;
-            std::size_t inner_size_minus_1= m.m_inner.size() -1;
-
-            if(!one_column){  //matrix-vector
-
-              for(std::size_t i=0; i< inner_size_minus_1 ; ++i){
-                //determine start and end point
-                start = m.m_inner[i];
-                end= m.m_inner[i+1];
-                for(std::size_t j=start; j<end; ++j){
-                    if constexpr(IsRowWise<s>::value){  //CSR
-                        res_idx=i;
-                        v_idx=m.m_outer[j];
+          if(!one_column){
+            if (IsRowWise<s>::value){ //CSR 
+                for(std::size_t i = 0; i < m.m_rows; ++i){
+                    U sum = U();
+                    std::size_t start = m.m_inner[i];
+                    std::size_t end = m.m_inner[i+1];
+                    for(std::size_t j = start; j < end; ++j){
+                        U val= m.m_values[j];
+                        std::size_t v_idx= m.m_outer[j];
+                        sum += val * v[v_idx];
                     }
-                    else{ //CSC
-                        res_idx=m.m_outer[j];
-                        v_idx=i;
-                    } 
-                    //update res
-                    res[res_idx] += m.m_values[j]*v[v_idx];  
+                    res[i] = sum;
+                }
+            }
+
+            else{
+                for(std::size_t i=0; i< m.m_cols ; ++i){
+                    for(std::size_t j=m.m_inner[i]; j<m.m_inner[i+1]; ++j)
+                        res[m.m_outer[j]]+= m.m_values[j]*v[i];
+                }
+            }
+          }
+          else { //"vector"-vector
+              if(IsRowWise<s>::value){
+                for(std::size_t i=0; i< m.m_rows ; ++i){
+                    std::size_t start = m.m_inner[i];
+                    std::size_t end= m.m_inner[i+1];
+                    if(start!=end){
+                        U val= m.m_values[start];
+                        res[0] += val*v[i];
+                    }
                 }
               }
-            }
-            else{ //"vector"-vector
-              for(std::size_t i=0; i< inner_size_minus_1 ; ++i){
-                //determine start and end point
-                start = m.m_inner[i];
-                end= m.m_inner[i+1];
-
-                for(std::size_t j=start; j<end; ++j){
-                    if constexpr(IsRowWise<s>::value)
-                        v_idx=i;
-                    else
-                        v_idx=m.m_outer[j];
-                    //update res, res ha size=1
-                    res[0] += m.m_values[j]*v[v_idx];  
-                }
+              else {
+                    for(std::size_t j=m.m_inner[0]; j<m.m_inner[1]; ++j)
+                        res[0]+= m.m_values[j]*v[m.m_outer[j]];              
               }
             }
         }
@@ -383,12 +387,11 @@ std::vector<U> operator*(const SparseMatrix<U,s> &m, const std::vector<U> &v){
               for(const auto &[key,value]: m.m_data_uncompressed)
                 res[0]+= value*v[key[0]];
         }
-        
+
         return res;
     }
-    std::cerr << "Dimensions are incompatible\n";
-    return std::vector<U>();
-};
+} 
+
 
 
 /**
