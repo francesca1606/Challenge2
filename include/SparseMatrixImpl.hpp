@@ -338,7 +338,9 @@ std::vector<U> operator*(const SparseMatrix<U,s> &m, const std::vector<U> &v){
            res.resize(1);
 
         if(m.is_compressed()){
+
           if(!one_column){
+            
             if (IsRowWise<s>::value){ //CSR 
                 for(std::size_t i = 0; i < m.m_rows; ++i){
                     U sum = U();
