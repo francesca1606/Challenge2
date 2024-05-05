@@ -7,6 +7,7 @@
 
 using namespace algebra;
 
+
 int main(){
 
     Timings::Chrono Time;
