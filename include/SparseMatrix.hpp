@@ -1,6 +1,6 @@
 #ifndef SPARSEMATRIX_HPP
 #define SPARSEMATRIX_HPP
-
+// clang-format off
 /**
  * \file SparseMatrix.hpp
  * \brief Header file for the akgebra namespace and SparseMatrix class
@@ -10,7 +10,7 @@
 #include <map>
 #include <array>
 #include <iostream>
-
+//@note good doxygen comments
 namespace algebra{
 
 
@@ -49,6 +49,8 @@ struct  lessOperator{
         if constexpr (IsRowWise<storage>::value) 
             index=0;
         else
+        //@note you can use tie to simplify the code:
+        // return std::tie(lhs[1], lhs[0]) < std::tie(rhs[1], rhs[0]);
             index=1;   
         if (lhs[index] < rhs[index]) return true;
         if (lhs[index] > rhs[index]) return false;
@@ -154,6 +156,9 @@ private:
     /**
      * \brief Map for uncompressed state of SparseMatrix that uses lessOperator for ordering
      */
+    //@note the simplest way to account for column_wise and row_wise is to use a different comparison operator
+    // for the map in the two cases. This way you avoid the complexity of having to exchange the row and column indexes,
+    // which is error-prone and confusing.
     std::map<std::array<std::size_t, 2>, T, lessOperator<storage>>  m_data_uncompressed;   
     
     std::vector<std::size_t> m_inner;
