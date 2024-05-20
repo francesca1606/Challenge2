@@ -6,10 +6,11 @@
  * \brief Implementation file for the SparseMatrix class
  */
 
-
+// clang-format off
 #include "SparseMatrix.hpp"
 #include <iostream>
-
+//@note I do not know why your compiler doas not request <algorithm> for std::upper_bound
+#include <algorithm>
 
 namespace algebra{
 
@@ -50,7 +51,7 @@ void SparseMatrix<T, storage>::compress(){
    
         // following lessOperator ordering
         for (const auto& [key, value] : m_data_uncompressed) { 
-            
+            //@note This code is very complex. It could have been done in a simpler way!
             nnz++;   
 
             //before changing row/column
@@ -129,6 +130,7 @@ void SparseMatrix<T,storage>::uncompress() {
         m_inner.clear();
         m_outer.clear();
         m_values.clear();
+        //@note you need to use shrink_to_fit to free memory!
     }
 };
 
@@ -162,7 +164,8 @@ void SparseMatrix<T,storage>::resize(std::size_t r_dir, std::size_t c_dir){
 
     m_rows=r_dir;
     m_cols=c_dir;
-
+  //@note ok operating only on uncompressed state, since it is easier and efficient, but if the matrix was originally compressed, 
+  // you should compress it again! At least this is what I would expect.
 };
 
 /**
@@ -188,7 +191,7 @@ T SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c) const{
            if(it!= m_data_uncompressed.end())
               return it->second;
            else
-              return T();
+              return T();//@note prefer T{} to T() for default initialization.
         }
     else {
         
@@ -284,6 +287,7 @@ T & SparseMatrix<T,storage>::operator()(std::size_t r, std::size_t c){
 template <class T, StorageOrder storage>
 T & SparseMatrix<T, storage>::insertElementCompressed(std::size_t r, std::size_t c) {
 
+//@note This is very sophisticated!
     std::size_t index_for_inner, index_for_outer;
     if constexpr (IsRowWise<storage>::value) { // CSR 
         index_for_inner=r;
@@ -334,6 +338,7 @@ std::vector<U> operator*(const SparseMatrix<U,s> &m, const std::vector<U> &v){
         
         bool one_column= (m.m_cols==1);
         //the vector is actually a scalar if matrix has one column
+        //@note Quite smart! But it may be misleading. It would be better to have a separate operator* for the scalar case.
         if(one_column) 
            res.resize(1);
 
